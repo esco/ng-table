@@ -1205,7 +1205,7 @@
                         var groupField = Object.keys(group)[0];
                         sortDirection = group[groupField];
                         groupFn = function(item){
-                            return item[groupField];
+                            return getPath(item, groupField);
                         };
                     }
 
@@ -1242,6 +1242,26 @@
                         // restore the real options
                         settings.dataOptions = originalDataOptions;
                     });
+                }
+
+                function getPath (obj, ks) {
+                    // origianl source https://github.com/documentcloud/underscore-contrib
+
+                    if (typeof ks == "string") ks = ks.split(".");
+
+                    // If we have reached an undefined property
+                    // then stop executing and return undefined
+                    if (obj === undefined) return void 0;
+
+                    // If the path array has no more elements, we've reached
+                    // the intended property and return its value
+                    if (ks.length === 0) return obj;
+
+                    // If we still have elements in the path array and the current
+                    // value is null, stop executing and return undefined
+                    if (obj === null) return void 0;
+
+                    return getPath(obj[ks[0]], ks.slice(1));
                 }
             }
 
@@ -2244,6 +2264,7 @@
 
 angular.module('ngTable').run(['$templateCache', function ($templateCache) {
 	$templateCache.put('ng-table/filterRow.html', '<tr ng-show="show_filter" class="ng-table-filters"> <th data-title-text="{{$column.titleAlt(this) || $column.title(this)}}" ng-repeat="$column in $columns" ng-if="$column.show(this)" class="filter {{$column.class(this)}}" ng-class="params.settings().filterOptions.filterLayout===\'horizontal\' ? \'filter-horizontal\' : \'\'"> <div ng-repeat="(name, filter) in $column.filter(this)" ng-include="config.getTemplateUrl(filter)" class="filter-cell" ng-class="[getFilterCellCss($column.filter(this), params.settings().filterOptions.filterLayout), $last ? \'last\' : \'\']"> </div> </th> </tr> ');
+	$templateCache.put('ng-table/filters/date.html', '<input type="date" name="{{name}}" ng-disabled="$filterRow.disabled" ng-model="params.filter()[name]" class="input-filter form-control" placeholder="{{getFilterPlaceholderValue(filter, name)}}"/> ');
 	$templateCache.put('ng-table/filters/number.html', '<input type="number" name="{{name}}" ng-disabled="$filterRow.disabled" ng-model="params.filter()[name]" class="input-filter form-control" placeholder="{{getFilterPlaceholderValue(filter, name)}}"/> ');
 	$templateCache.put('ng-table/filters/select-multiple.html', '<select ng-options="data.id as data.title for data in $column.data" ng-disabled="$filterRow.disabled" multiple ng-multiple="true" ng-model="params.filter()[name]" class="filter filter-select-multiple form-control" name="{{name}}"> </select> ');
 	$templateCache.put('ng-table/filters/select.html', '<select ng-options="data.id as data.title for data in $selectData" ng-table-select-filter-ds="$column" ng-disabled="$filterRow.disabled" ng-model="params.filter()[name]" class="filter filter-select form-control" name="{{name}}"> <option style="display:none" value=""></option> </select> ');
